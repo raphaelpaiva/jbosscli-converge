@@ -51,6 +51,12 @@ def parse_args():
         default="jboss:jboss@123"
     )
 
+    parser.add_argument(
+        "-d", "--desired",
+        help="The json file containing the desired state.",
+        default="desired.json"
+    )
+
     return parser.parse_args()
 
 
@@ -61,7 +67,7 @@ def read_from_file(path):  # pragma: no cover
 
 
 def read_input(args):
-    desired_file = read_from_file("desired.json")
+    desired_file = read_from_file(args.desired)
     desired = json.loads(desired_file)
 
     cli = Jbosscli(args.controller, args.auth)
