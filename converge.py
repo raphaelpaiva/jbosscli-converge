@@ -29,8 +29,21 @@ def main():
     to_add_items = missing(desired, current)
     to_update_items = diff(desired, current)
 
-    print_cli(to_add_items, ADD_OPERATION)
-    print_cli(to_update_items, UPDATE_OPERATION)
+    output = get_output_file(args)
+
+    print_cli(to_add_items, ADD_OPERATION, output)
+    print_cli(to_update_items, UPDATE_OPERATION, output)
+
+    if output:
+        output.close()
+
+
+def get_output_file(args):
+    output_file = args.output
+    if output_file == "stdout":
+        return None
+    else:
+        return open(output_file, "w")
 
 
 def parse_args():
@@ -53,8 +66,15 @@ def parse_args():
 
     parser.add_argument(
         "-d", "--desired",
-        help="The json file containing the desired state.",
+        help="The json file containing the desired state.\
+ Defaults to desired.json",
         default="desired.json"
+    )
+
+    parser.add_argument(
+        "-o", "--output",
+        help="Output file. Defaults to stdout.",
+        default="stdout"
     )
 
     return parser.parse_args()
@@ -109,7 +129,7 @@ def diff(desired, current):
     return diff
 
 
-def print_cli(data, operation=ADD_OPERATION):
+def print_cli(data, operation=ADD_OPERATION, output_file=None):
     output = ""
 
     for item in data:
@@ -121,7 +141,7 @@ def print_cli(data, operation=ADD_OPERATION):
                 )
             )
 
-    print(output)
+    print(output, file=output_file)
 
 if __name__ == "__main__":
     main()
