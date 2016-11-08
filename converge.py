@@ -6,20 +6,9 @@ import json
 import argparse
 
 
-class Operation:
-    def __init__(self, template, keys):
-        self.template = template
-        self.keys = keys
+ADD_OPERATION = "add"
 
-
-ADD_OPERATION = Operation(
-    "/system-property={0}:add(value=\"{1}\",boot-time={2})\n",
-    ["value", "boot-time"]
-)
-UPDATE_OPERATION = Operation(
-    "/system-property={0}:write-attribute(name={1},value=\"{2}\")\n",
-    ["attribute", "value"]
-)
+UPDATE_OPERATION = "write-attribute"
 
 
 def main():
@@ -31,8 +20,21 @@ def main():
 
     output = get_output_file(args)
 
-    print_cli(to_add_items, ADD_OPERATION, output)
-    print_cli(to_update_items, UPDATE_OPERATION, output)
+    print_cli(
+        to_add_items,
+        args.address,
+        args.type,
+        ADD_OPERATION,
+        output
+    )
+
+    print_cli(
+        to_update_items,
+        args.address,
+        args.type,
+        UPDATE_OPERATION,
+        output
+    )
 
     if output:
         output.close()
@@ -55,7 +57,6 @@ def parse_args():
     parser.add_argument(
         "-c", "--controller",
         help="The controller to interact with.",
-        default="localhost:9990"
     )
 
     parser.add_argument(
@@ -77,6 +78,18 @@ def parse_args():
         default="stdout"
     )
 
+    parser.add_argument(
+        "--address",
+        help="The cli address to the resource.",
+        default=""
+    )
+
+    parser.add_argument(
+        "-t", "--type",
+        help="The cli resource type.",
+        default="system-property"
+    )
+
     return parser.parse_args()
 
 
@@ -90,8 +103,23 @@ def read_input(args):
     desired_file = read_from_file(args.desired)
     desired = json.loads(desired_file)
 
-    cli = Jbosscli(args.controller, args.auth)
-    current = cli.get_system_properties()
+    current = None
+
+    if args.controller:
+        address = args.address or ""
+        resource_type = args.type
+
+        command = '{{"operation": "read-children-resources",\
+"child-type": "{0}", "address": {1}}}'.format(
+            resource_type,
+            address.replace('/', ' ').replace('=', ' ').split()
+        ).replace("\'", "\"")
+
+        cli = Jbosscli(args.controller, args.auth)
+        current = cli._invoke_cli(command)['result']
+    else:
+        current_file = read_from_file("current.json")
+        current = json.loads(current_file)
 
     return desired, current
 
@@ -129,19 +157,32 @@ def diff(desired, current):
     return diff
 
 
-def print_cli(data, operation=ADD_OPERATION, output_file=None):
+def print_cli(data, address, type, operation=ADD_OPERATION, output_file=None):
+    """ data = "name": {"boot-time": false, "value": "somevalue"} """
+
     output = ""
+
+    template = "{address}/{type}={name}:{operation}({params})\n"
 
     for item in data:
         for key, value in item.iteritems():
-            output += operation.template.format(
-                key, *map(
-                    lambda x: value[x] if x in value else "false",
-                    operation.keys
-                )
+            output += template.format(
+                address=address,
+                type=type,
+                name=key,
+                operation=operation,
+                params=map_params(value)
             )
 
     print(output, file=output_file)
+
+
+def map_params(data):
+    params = []
+    for k, v in data.items():
+        params.append("{0}={1}".format(k, v))
+
+    return ",".join(params)
 
 if __name__ == "__main__":
     main()
