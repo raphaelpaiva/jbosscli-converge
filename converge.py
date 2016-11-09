@@ -152,7 +152,7 @@ def diff(desired, current):
     for item in items:
         for name, obj in item.iteritems():
             for key, value in obj.iteritems():
-                diff.append({name: {"attribute": key, "value": value}})
+                diff.append({name: {"name": key, "value": value}})
 
     return diff
 
