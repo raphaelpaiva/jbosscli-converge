@@ -62,7 +62,8 @@ the controller, instead of looking for a 'current.json' file.",
 
     parser.add_argument(
         "-a", "--auth",
-        help="The credentials to authenticate on the controller",
+        help="The credentials to authenticate on the controller in \
+the user:password format.",
         default="jboss:jboss@123"
     )
 
