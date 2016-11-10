@@ -50,13 +50,14 @@ def get_output_file(args):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Generates [un]deploy commands which you can " +
-        "pipe through jboss-cli script."
+        description="Creates cli recipes from json files describing the\
+current and desired states to enforce compliance."
     )
 
     parser.add_argument(
         "-c", "--controller",
-        help="The controller to interact with.",
+        help="The controller to interact with. Grabs the current state from \
+the controller, instead of looking for a 'current.json' file.",
     )
 
     parser.add_argument(
@@ -68,7 +69,7 @@ def parse_args():
     parser.add_argument(
         "-d", "--desired",
         help="The json file containing the desired state.\
- Defaults to desired.json",
+ Defaults to 'desired.json'",
         default="desired.json"
     )
 
@@ -80,13 +81,13 @@ def parse_args():
 
     parser.add_argument(
         "--address",
-        help="The cli address to the resource.",
+        help="The cli address to the resource. Defaults to '' (root).",
         default=""
     )
 
     parser.add_argument(
         "-t", "--type",
-        help="The cli resource type.",
+        help="The cli resource type. Defaults to 'system-property'.",
         default="system-property"
     )
 
