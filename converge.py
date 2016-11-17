@@ -154,7 +154,12 @@ def diff(desired, current):
     for item in items:
         for name, obj in item.iteritems():
             for key, value in obj.iteritems():
-                diff.append({name: {"name": key, "value": value}})
+                current_obj = current[name]
+                is_new = key not in current_obj
+                is_different = key in current_obj and current_obj[key] != value
+
+                if is_new or is_different:
+                    diff.append({name: {"name": key, "value": value}})
 
     return diff
 

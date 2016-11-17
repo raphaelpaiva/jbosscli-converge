@@ -35,14 +35,13 @@ class TestDeploy(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     # TODO: This should change in the future. Instead of listing all "b"'s
-    # attributes, it shoyld list only the different ones
+    # attributes, it should list only the different ones
     def test_diff_newAttribute_shouldReturnList(self):
         desired = {"a": {"att": "b"}, "b": {"otheratt": 1, "newatt": "vvvv"}}
         current = {"a": {"att": "b"}, "b": {"otheratt": 1}}
 
         expected = [
-            {"b": {"name": "newatt", "value": "vvvv"}},
-            {"b": {"name": "otheratt", "value": 1}}
+            {"b": {"name": "newatt", "value": "vvvv"}}
         ]
 
         actual = converge.diff(desired, current)
@@ -74,12 +73,7 @@ class TestDeploy(unittest.TestCase):
 "stack-size" : null, "type" : null}}'
         )
 
-        expected = [
-            {"app-auth": {"name": "heap-size", "value": "129m"}},
-            {"app-auth": {"name": "max-heap-size", "value": "257m"}},
-            {"app-auth": {"name": "permgen-size", "value": "65m"}},
-            {"app-auth": {"name": "max-permgen-size", "value": "257m"}}
-        ]
+        expected = []
 
         actual = converge.diff(desired, current)
 
