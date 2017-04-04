@@ -48,7 +48,7 @@ def get_output_file(args):
         return open(output_file, "w")
 
 
-def parse_args():
+def parse_args(): # pragma: no cover
     parser = argparse.ArgumentParser(
         description="Creates cli recipes from json files describing the\
 current and desired states to enforce compliance."
@@ -100,6 +100,8 @@ def read_from_file(path):  # pragma: no cover
     with open(path) as f:
         return f.read()
 
+def get_controller(args): # pragma: no cover
+    return Jbosscli(args.controller, args.auth)
 
 def read_input(args):
     desired_file = read_from_file(args.desired)
@@ -111,14 +113,14 @@ def read_input(args):
         address = args.address or ""
         resource_type = args.type
 
-        command = '{{"operation": "read-children-resources",\
-"child-type": "{0}", "address": {1}}}'.format(
-            resource_type,
-            address.replace('/', ' ').replace('=', ' ').split()
-        ).replace("\'", "\"")
+        command = {
+            "operation": "read-children-resources",
+            "child-type": resource_type,
+            "address": address.replace('/', ' ').replace('=', ' ').split()
+        }
 
-        cli = Jbosscli(args.controller, args.auth)
-        current = cli._invoke_cli(command)['result']
+        cli = get_controller(args)
+        current = cli.invoke_cli(command)
     else:
         current_file = read_from_file("current.json")
         current = json.loads(current_file)

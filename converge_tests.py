@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import unittest
 import json
+from mock import *
 
 import converge
 
@@ -78,6 +79,87 @@ class TestDeploy(unittest.TestCase):
         actual = converge.diff(desired, current)
 
         self.assertItemsEqual(actual, expected)
+
+    def test_get_output_file_stdout(self):
+        args = MagicMock(output="stdout")
+
+        self.assertIsNone(converge.get_output_file(args))
+
+    def test_get_output_file_filename(self):
+        args = MagicMock(output="somefile")
+
+        m_open = mock_open()
+        with patch(converge.__name__ + ".open", m_open):
+            self.assertIsNotNone(converge.get_output_file(args))
+            m_open.assert_called_once_with("somefile", 'w')
+
+    def test_read_input_empty_controller(self):
+        mock_config = {
+            "desired.json": '{"what": "desired!"}',
+            "current.json": '{"this": "current!"}'
+        }
+
+        side_effect = lambda x: mock_config[x]
+
+        mock_read_from_file = MagicMock(side_effect=side_effect)
+
+        args = MagicMock(
+            desired="desired.json",
+            controller=None
+        )
+
+        with patch(converge.__name__ + ".read_from_file", mock_read_from_file):
+            desired, current = converge.read_input(args)
+
+            self.assertEqual(desired, {'what': 'desired!'})
+            self.assertEqual(current, {'this': 'current!'})
+
+    def test_read_input_with_controller(self):
+            mock_config = {
+                "desired.json": '{"what": "desired!"}',
+                "current.json": '{"this": "current!"}'
+            }
+
+            side_effect = lambda x: mock_config[x]
+
+            mock_read_from_file = MagicMock(side_effect=side_effect)
+
+            args = MagicMock(
+                desired="desired.json",
+                controller="host:port",
+                type="system-property",
+                address=""
+            )
+
+            jboss_mock = MagicMock()
+
+            with patch(converge.__name__ + ".read_from_file", mock_read_from_file):
+                with patch(converge.__name__ + ".get_controller", MagicMock(return_value=jboss_mock)):
+                    desired, current = converge.read_input(args)
+
+                    jboss_mock.invoke_cli.assert_called_once_with({
+                        "operation": "read-children-resources",
+                        "child-type": "system-property",
+                        "address": []
+                    })
+
+    def test_missing(self):
+        desired = {
+            "existing": "Yay!",
+            "missing": "This is missing!"
+        }
+
+        current = {
+            "existing": "Yay!"
+        }
+
+        expected = [{
+            "missing": "This is missing!"
+        }]
+
+        missing_items = converge.missing(desired, current)
+
+        self.assertEqual(missing_items, expected)
 
 
 if __name__ == '__main__':

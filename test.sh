@@ -12,7 +12,7 @@ fi
 
 rm -f .coverage
 
-for f in `git ls-files **/*_tests.py | sed 's/\//\./g' | sed 's/\.py//g'`; do
+for f in `git ls-files *_tests.py | sed 's/\//\./g' | sed 's/\.py//g'`; do
   echo "-- $f"
   python -m coverage run --omit=$TEST_PATTERN,$JBOSSCLI_PATTERN,$INIT_PATTERN -a -m $f
 done
