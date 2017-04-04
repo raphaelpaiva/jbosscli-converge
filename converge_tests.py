@@ -161,6 +161,19 @@ class TestDeploy(unittest.TestCase):
 
         self.assertEqual(missing_items, expected)
 
+    def test_map_parameters(self):
+        data = {
+            "name": "value",
+            "name2": "value2",
+            "name3": "value3"
+        }
+
+        expected = "name2=value2,name=value,name3=value3"
+
+        actual = converge.map_params(data)
+
+        self.assertEqual(actual, expected)
+
 
 if __name__ == '__main__':
     unittest.main()
