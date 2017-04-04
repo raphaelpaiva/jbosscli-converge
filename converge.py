@@ -41,6 +41,7 @@ def main():
 
 
 def get_output_file(args):
+    """Resolves the output of the program"""
     output_file = args.output
     if output_file == "stdout":
         return None
@@ -49,6 +50,8 @@ def get_output_file(args):
 
 
 def parse_args(): # pragma: no cover
+    """Configures argparse"""
+
     parser = argparse.ArgumentParser(
         description="Creates cli recipes from json files describing the\
 current and desired states to enforce compliance."
@@ -96,14 +99,16 @@ the user:password format.",
 
 
 def read_from_file(path):  # pragma: no cover
-    lines = []
+    """Reads lines from _path_"""
     with open(path) as f:
         return f.read()
 
 def get_controller(args): # pragma: no cover
+    """Some sugar for easily mocking Jbosscli"""
     return Jbosscli(args.controller, args.auth)
 
 def read_input(args):
+    """Reads desired and current states from json files or controller rest api"""
     desired_file = read_from_file(args.desired)
     desired = json.loads(desired_file)
 
@@ -129,6 +134,7 @@ def read_input(args):
 
 
 def missing(desired, current):
+    """Returns a list of {key, value} present in _desired_, but not in _current_"""
     desired_keys = frozenset(desired.keys())
     current_keys = frozenset(current.keys())
 
@@ -142,6 +148,9 @@ def missing(desired, current):
 
 
 def diff(desired, current):
+    """Returns a list of desired **attributes** {name, value}
+    that are missing or different from the ones in _current_.
+    """
     desired_keys = frozenset(desired.keys())
     current_keys = frozenset(current.keys())
 
@@ -187,9 +196,10 @@ def print_cli(data, address, type, operation=ADD_OPERATION, output_file=None):
 
 
 def map_params(data):
+    """Returns a string of parameters in a key=value,key=value,... format"""
     params = []
-    for k, v in data.items():
-        params.append("{0}={1}".format(k, v))
+    for key, value in data.items():
+        params.append("{0}={1}".format(key, value))
 
     return ",".join(params)
 
