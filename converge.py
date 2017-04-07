@@ -198,7 +198,11 @@ def print_cli(data, address, type, operation=ADD_OPERATION, output_file=None):
 def map_params(data):
     """Returns a string of parameters in a key=value,key=value,... format"""
     params = []
-    for key, value in data.items():
+    for key, orig_value in data.items():
+        if isinstance(orig_value, basestring):
+            value = orig_value.encode("utf-8")
+        else:
+            value = orig_value
         params.append("{0}={1}".format(key, value))
 
     return ",".join(params)
